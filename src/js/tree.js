@@ -1,158 +1,44 @@
-// Canvas setup
-const canvas = document.getElementById('christmasTreeCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// Initialize the tree
+const tree = document.querySelector('.tree');
 
-// Audio Setup
-const audio = new Audio('/audio/jingle-bells.mp3');
-let isPlaying = false;
+/**
+ * Add ornaments dynamically to the tree.
+ */
+function addOrnaments() {
+    const colors = ['#ff0000', '#ffff00', '#00ff00', '#0000ff', '#ffa500', '#ff69b4']; // Extended color palette
+    const ornamentCount = 20; // Total number of ornaments
 
-// Initialize variables
-let particles = [];
-let snowflakes = [];
-let lights = [];
-const colors = ['#ff0000', '#ffff00', '#00ff00', '#0000ff', '#ff69b4'];
+    for (let i = 0; i < ornamentCount; i++) {
+        // Create an ornament element
+        const ornament = document.createElement('div');
+        ornament.className = 'ornament';
 
-// Play/Pause Music
-function toggleMusic() {
-    isPlaying ? audio.pause() : audio.play();
-    isPlaying = !isPlaying;
-}
+        // Assign a random color from the palette
+        ornament.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
 
-// Draw tree
-function drawTree(x, y, width, height, levels) {
-    ctx.fillStyle = '#8B4513';
-    ctx.fillRect(x - width / 8, y, width / 4, height / 5);
+        // Randomly position ornaments within the tree boundaries
+        ornament.style.left = Math.random() * 80 + 10 + '%'; // Avoid edges
+        ornament.style.top = Math.random() * 80 + 10 + '%'; // Avoid edges
 
-    ctx.fillStyle = '#0f5132';
-    for (let i = 0; i < levels; i++) {
-        const levelWidth = width - (i * width / levels);
-        const levelHeight = height / levels;
-        ctx.beginPath();
-        ctx.moveTo(x - levelWidth / 2, y - (i + 1) * levelHeight);
-        ctx.lineTo(x, y - i * levelHeight);
-        ctx.lineTo(x + levelWidth / 2, y - (i + 1) * levelHeight);
-        ctx.closePath();
-        ctx.fill();
-    }
-}
-
-// Generate snowflakes
-function createSnowflakes(count) {
-    for (let i = 0; i < count; i++) {
-        snowflakes.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 3 + 2,
-            speed: Math.random() * 1 + 0.5,
+        // Add interactivity: play sound on click
+        ornament.dataset.sound = `ornament${(i % 2) + 1}`; // Alternate sounds for ornaments
+        ornament.addEventListener('click', () => {
+            const soundPath = `src/assets/sounds/${ornament.dataset.sound}.mp3`;
+            const audio = new Audio(soundPath);
+            audio.play();
         });
+
+        // Append ornament to the tree
+        tree.appendChild(ornament);
     }
 }
 
-// Draw snowflakes
-function drawSnowflakes() {
-    ctx.fillStyle = 'white';
-    snowflakes.forEach(snowflake => {
-        ctx.beginPath();
-        ctx.arc(snowflake.x, snowflake.y, snowflake.size, 0, Math.PI * 2);
-        ctx.fill();
-        snowflake.y += snowflake.speed;
-        if (snowflake.y > canvas.height) snowflake.y = -10;
-    });
-}
-
-// Generate ornaments/lights
-function createLights(count) {
-    for (let i = 0; i < count; i++) {
-        lights.push({
-            x: canvas.width / 2 + (Math.random() - 0.5) * 200,
-            y: canvas.height - 300 - Math.random() * 400,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            size: Math.random() * 5 + 5,
-        });
-    }
-}
-
-// Draw ornaments/lights
-function drawLights() {
-    lights.forEach(light => {
-        ctx.beginPath();
-        ctx.arc(light.x, light.y, light.size, 0, Math.PI * 2);
-        ctx.fillStyle = light.color;
-        ctx.fill();
-    });
-}
-
-// Generate particles
-function createParticles(count) {
-    for (let i = 0; i < count; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 2 + 1,
-            speed: Math.random() * 2 + 1,
-            angle: Math.random() * Math.PI * 2,
-        });
-    }
-}
-
-// Draw particles
-function drawParticles() {
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    particles.forEach(particle => {
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
-        particle.x += Math.cos(particle.angle) * particle.speed;
-        particle.y += Math.sin(particle.angle) * particle.speed;
-        if (particle.y > canvas.height) particle.y = 0;
-        if (particle.x > canvas.width || particle.x < 0) particle.x = Math.random() * canvas.width;
-    });
-}
-
-// Handle canvas gestures
-let startX = 0, startY = 0, rotating = false;
-canvas.addEventListener('mousedown', e => {
-    rotating = true;
-    startX = e.clientX;
-    startY = e.clientY;
-});
-
-canvas.addEventListener('mousemove', e => {
-    if (rotating) {
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        canvas.style.transform = `rotateY(${deltaX / 2}deg) rotateX(${-deltaY / 2}deg)`;
+// Call the function to add ornaments after the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (tree) {
+        addOrnaments();
+        console.log("Ornaments added to the tree.");
+    } else {
+        console.error("Tree element not found.");
     }
 });
-
-canvas.addEventListener('mouseup', () => rotating = false);
-
-// Initialize scene
-function initializeScene() {
-    createSnowflakes(100);
-    createLights(30);
-    createParticles(50);
-    draw();
-}
-
-// Main draw function
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const centerX = canvas.width / 2;
-    const baseY = canvas.height - 100;
-    const treeWidth = 200;
-    const treeHeight = 400;
-    const levels = 5;
-
-    drawTree(centerX, baseY, treeWidth, treeHeight, levels);
-    drawLights();
-    drawParticles();
-    drawSnowflakes();
-
-    requestAnimationFrame(draw);
-}
-
-initializeScene();
