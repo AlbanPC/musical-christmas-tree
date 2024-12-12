@@ -1,44 +1,86 @@
-// Initialize the tree
-const tree = document.querySelector('.tree');
+// Initialize the canvas and context
+const canvas = document.getElementById('christmasTreeCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-/**
- * Add ornaments dynamically to the tree.
- */
-function addOrnaments() {
-    const colors = ['#ff0000', '#ffff00', '#00ff00', '#0000ff', '#ffa500', '#ff69b4']; // Extended color palette
-    const ornamentCount = 20; // Total number of ornaments
+// Tree drawing function
+function drawTree(x, y, width, height, levels) {
+    const trunkHeight = height / 5;
+    const trunkWidth = width / 4;
 
-    for (let i = 0; i < ornamentCount; i++) {
-        // Create an ornament element
-        const ornament = document.createElement('div');
-        ornament.className = 'ornament';
+    // Draw trunk
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x - trunkWidth / 2, y, trunkWidth, trunkHeight);
 
-        // Assign a random color from the palette
-        ornament.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
-        // Randomly position ornaments within the tree boundaries
-        ornament.style.left = Math.random() * 80 + 10 + '%'; // Avoid edges
-        ornament.style.top = Math.random() * 80 + 10 + '%'; // Avoid edges
-
-        // Add interactivity: play sound on click
-        ornament.dataset.sound = `ornament${(i % 2) + 1}`; // Alternate sounds for ornaments
-        ornament.addEventListener('click', () => {
-            const soundPath = `src/assets/sounds/${ornament.dataset.sound}.mp3`;
-            const audio = new Audio(soundPath);
-            audio.play();
-        });
-
-        // Append ornament to the tree
-        tree.appendChild(ornament);
+    // Draw tree levels
+    ctx.fillStyle = '#0f5132';
+    for (let i = 0; i < levels; i++) {
+        const levelWidth = width - (i * (width / levels));
+        const levelHeight = height / levels;
+        const levelX = x - levelWidth / 2;
+        const levelY = y - trunkHeight - i * levelHeight;
+        
+        ctx.beginPath();
+        ctx.moveTo(levelX, levelY + levelHeight);
+        ctx.lineTo(levelX + levelWidth / 2, levelY);
+        ctx.lineTo(levelX + levelWidth, levelY + levelHeight);
+        ctx.closePath();
+        ctx.fill();
     }
 }
 
-// Call the function to add ornaments after the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    if (tree) {
-        addOrnaments();
-        console.log("Ornaments added to the tree.");
-    } else {
-        console.error("Tree element not found.");
+// Ornament drawing function
+function drawOrnaments(x, y, width, height, levels) {
+    const colors = ['#ff0000', '#ffff00', '#00ff00', '#0000ff', '#ff69b4'];
+    for (let i = 0; i < levels * 3; i++) {
+        const ornamentX = x + (Math.random() - 0.5) * width;
+        const ornamentY = y - Math.random() * height;
+        const radius = Math.random() * 5 + 5;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        ctx.beginPath();
+        ctx.arc(ornamentX, ornamentY, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
     }
+}
+
+// Star drawing function
+function drawStar(x, y) {
+    ctx.fillStyle = 'gold';
+    ctx.beginPath();
+    ctx.moveTo(x, y - 20);
+    for (let i = 1; i <= 5; i++) {
+        const angle = (i * Math.PI) / 2.5;
+        const starX = x + Math.cos(angle) * 20;
+        const starY = y + Math.sin(angle) * 20;
+        ctx.lineTo(starX, starY);
+    }
+    ctx.closePath();
+    ctx.fill();
+}
+
+// Initialize the scene
+function initializeScene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const centerX = canvas.width / 2;
+    const baseY = canvas.height - 100;
+    const treeWidth = 200;
+    const treeHeight = 400;
+    const levels = 5;
+
+    drawTree(centerX, baseY, treeWidth, treeHeight, levels);
+    drawOrnaments(centerX, baseY - treeHeight / 2, treeWidth, treeHeight, levels);
+    drawStar(centerX, baseY - treeHeight - 30);
+}
+
+// Resize handler
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initializeScene();
 });
+
+// Start drawing
+initializeScene();
