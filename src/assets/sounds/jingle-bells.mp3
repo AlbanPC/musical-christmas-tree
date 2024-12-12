@@ -1,1 +1,10 @@
+// Audio Setup
+const audio = new Audio('C:\Users\alban\Downloads\jingle-bells-180036.mp3');
 
+function toggleMusic() {
+    if (audio.paused) {
+        audio.play();
+    } else {
+        audio.pause();
+    }
+}
